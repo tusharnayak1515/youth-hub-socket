@@ -8,25 +8,14 @@ let users = [];
 
 const addUser = (userId,socketId,status)=> {
     // console.log(users.length);
-    let found = true;
-    for(let i=0; i< users.length; i++) {
-        console.log(users[i].userId !== userId);
-        if(users[i].userId !== userId) {
-            found = false;
-        }
-        else {
-            found = true;
-        }
-    }
-    if(!found) {
-        users.push({userId, socketId, status});
-    }
+    !users.some((user) => user.userId === userId) &&
+    users.push({ userId, socketId, status});
 
     if(users.length === 0) {
-        console.log("yes");
+        // console.log("yes");
         users.push({userId, socketId, status});
     }
-    console.log(users);
+    // console.log(users);
 }
 
 const removeUser = (socketId)=> {
@@ -47,7 +36,9 @@ io.on("connection", (socket) => {
         // console.log(users);
         let myusers = [];
         for(let i=0; i<users.length; i++) {
-            myusers.push(users[i].userId);
+            if(users[i].status === "online") {
+                myusers.push(users[i].userId);
+            }
         }
         io.emit("getUsers", myusers);
     });
@@ -55,6 +46,7 @@ io.on("connection", (socket) => {
     // send and get message
     socket.on("sendMessage", ({_id,conversation,sender,receiver,text,createdAt,updatedAt})=> {
         let myreceiver = getUser(receiver._id);
+        // console.log(receiver._id);
         if(myreceiver === undefined) {
             let status = "offline";
             addUser(receiver._id,socket.id, status);
